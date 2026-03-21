@@ -24,7 +24,7 @@ def calculate():
         # Diameter calculation
         d = ((4 * s) / math.pi) ** 0.5
         #calculation for length of shroud lines
-        shroud_line_length = (1.2 * l)/100
+        shroud_line_length = 1.2 * d*100
         #calculation for length of shroud cords
         shroud_cord_length = 4*l
         
