@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Parachute Parameter Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+    :root {
+      --bg: #03060f;
+      --panel: rgba(5, 15, 35, 0.82);
+      --border: rgba(0, 200, 255, 0.25);
+      --accent: #00c8ff;
+      --accent2: #ff6b35;
+      --glow: 0 0 18px rgba(0,200,255,0.55);
+      --text: #cde8ff;
+      --muted: #5a7a99;
+      --success: #00ffaa;
+      --error: #ff4466;
+    }
+ 
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Share Tech Mono', monospace;
+      overflow-x: hidden;
+    }
+ 
+    /* ── ANIMATED STAR FIELD ── */
+    .stars {
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(1px 1px at 10% 20%, #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 30% 60%, rgba(255,255,255,.8) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 55% 15%, #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 70% 45%, rgba(255,255,255,.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 85% 75%, #fff 0%, transparent 100%),
+        radial-gradient(2px 2px at 20% 85%, rgba(255,255,255,.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 90% 10%, #fff 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 45% 90%, rgba(255,255,255,.7) 0%, transparent 100%),
+        radial-gradient(1px 1px at 65% 35%, #fff 0%, transparent 100%);
+      background-size: 400px 400px;
+      animation: starScroll 60s linear infinite;
+    }
+    @keyframes starScroll {
+      from { background-position: 0 0; }
+      to   { background-position: 400px 800px; }
+    }
+ 
+    /* ── ROCKET SVG BACKGROUND ── */
+    .rocket-bg {
+      position: fixed;
+      right: -60px;
+      bottom: -40px;
+      width: min(600px, 70vw);
+      opacity: 0.13;
+      z-index: 1;
+      animation: rocketFloat 6s ease-in-out infinite;
+      pointer-events: none;
+      filter: drop-shadow(0 0 40px #00c8ff88);
+    }
+    @keyframes rocketFloat {
+      0%,100% { transform: translateY(0) rotate(-8deg); }
+      50%      { transform: translateY(-28px) rotate(-8deg); }
+    }
+ 
+    /* ── FLAME PARTICLES ── */
+    .flame-wrap {
+      position: fixed;
+      right: 90px;
+      bottom: 10px;
+      z-index: 2;
+      pointer-events: none;
+      opacity: 0.22;
+    }
+    .flame {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      position: absolute;
+      animation: flamePop 1.4s ease-out infinite;
+    }
+    .flame:nth-child(1) { background:#ff6b35; left:0; animation-delay:0s; }
+    .flame:nth-child(2) { background:#ffaa00; left:6px; animation-delay:.25s; }
+    .flame:nth-child(3) { background:#fff176; left:12px; animation-delay:.5s; }
+    @keyframes flamePop {
+      0%   { transform:translateY(0) scale(1); opacity:.9; }
+      100% { transform:translateY(80px) scale(0.1); opacity:0; }
+    }
+ 
+    /* ── LAYOUT ── */
+    .page {
+      position: relative; z-index: 10;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+ 
+    /* ── HEADER ── */
+    header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 10px;
+      letter-spacing: 4px;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      padding: 4px 14px;
+      border-radius: 2px;
+      margin-bottom: 14px;
+      text-transform: uppercase;
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { box-shadow: none; }
+      50%      { box-shadow: var(--glow); }
+    }
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(1.6rem, 4vw, 2.8rem);
+      font-weight: 900;
+      letter-spacing: 3px;
+      line-height: 1.2;
+      color: #fff;
+      text-shadow: 0 0 30px rgba(0,200,255,.6);
+    }
+    h1 span { color: var(--accent2); }
+    .subtitle {
+      margin-top: 10px;
+      font-size: 12px;
+      letter-spacing: 2px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+ 
+    /* ── PANEL ── */
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 36px 40px;
+      width: 100%;
+      max-width: 520px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 0 60px rgba(0,200,255,.07), inset 0 1px 0 rgba(255,255,255,.05);
+      position: relative;
+    }
+    .card::before {
+      content:'';
+      position:absolute;
+      top:0; left:0; right:0;
+      height:2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    }
+ 
+    /* ── FORM ── */
+    .field { margin-bottom: 22px; }
+    label {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .input-wrap {
+      display: flex;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      background: rgba(0,200,255,.04);
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .input-wrap:focus-within {
+      border-color: var(--accent);
+      box-shadow: var(--glow);
+    }
+    input[type="number"] {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      padding: 12px 14px;
+      color: #fff;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 15px;
+    }
+    input[type="number"]::placeholder { color: var(--muted); }
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+    .unit {
+      padding: 0 14px;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 1px;
+      border-left: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .hint {
+      margin-top: 6px;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+ 
+    /* ── BUTTON ── */
+    .btn {
+      width: 100%;
+      margin-top: 10px;
+      padding: 14px;
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: background .2s, color .2s, box-shadow .2s, transform .1s;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn::after {
+      content:'';
+      position:absolute; inset:0;
+      background: linear-gradient(120deg, transparent 30%, rgba(0,200,255,.12) 50%, transparent 70%);
+      transform: translateX(-100%);
+      transition: transform .5s;
+    }
+    .btn:hover::after { transform: translateX(100%); }
+    .btn:hover {
+      background: rgba(0,200,255,.1);
+      box-shadow: var(--glow);
+    }
+    .btn:active { transform: scale(.98); }
+    .btn.loading { opacity:.6; pointer-events:none; }
+ 
+    /* ── RESULTS ── */
+    .results {
+      margin-top: 28px;
+      border-top: 1px solid var(--border);
+      padding-top: 24px;
+      display: none;
+    }
+    .results.visible { display: block; animation: fadeUp .4s ease; }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(12px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .result-label {
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .result-box {
+      background: rgba(0,200,255,.05);
+      border: 1px solid rgba(0,200,255,.15);
+      border-radius: 3px;
+      padding: 16px;
+      text-align: center;
+      position: relative;
+    }
+    .result-box::before {
+      content: attr(data-label);
+      position: absolute;
+      top: -9px; left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg);
+      padding: 0 8px;
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+    .result-value {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--success);
+      text-shadow: 0 0 14px rgba(0,255,170,.5);
+      display: block;
+    }
+    .result-unit {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      margin-top: 4px;
+    }
+ 
+    /* ── ERROR ── */
+    .error-msg {
+      margin-top: 14px;
+      padding: 10px 14px;
+      background: rgba(255,68,102,.1);
+      border: 1px solid rgba(255,68,102,.3);
+      border-radius: 3px;
+      color: var(--error);
+      font-size: 12px;
+      letter-spacing: 1px;
+      display: none;
+    }
+    .error-msg.visible { display: block; animation: fadeUp .3s ease; }
+ 
+    /* ── FOOTER ── */
+    footer {
+      margin-top: 28px;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--muted);
+      text-align: center;
+      text-transform: uppercase;
+    }
+ 
+    /* ── SCANLINE OVERLAY ── */
+    .scanlines {
+      position: fixed; inset: 0; z-index: 9;
+      background: repeating-linear-gradient(
+        0deg, transparent, transparent 2px,
+        rgba(0,0,0,.04) 2px, rgba(0,0,0,.04) 4px
+      );
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+ 
+<div class="stars"></div>
+<div class="scanlines"></div>
+ 
+<!-- Rocket SVG background illustration -->
+<svg class="rocket-bg" viewBox="0 0 320 640" xmlns="http://www.w3.org/2000/svg">
+  <!-- Rocket body -->
+  <ellipse cx="160" cy="340" rx="55" ry="160" fill="#0a2040" stroke="#00c8ff" stroke-width="2"/>
+  <!-- Nose cone -->
+  <path d="M160 40 C120 120 105 200 105 260 L215 260 C215 200 200 120 160 40Z"
+        fill="#0d2a55" stroke="#00c8ff" stroke-width="2"/>
+  <!-- Nose tip glow -->
+  <ellipse cx="160" cy="50" rx="14" ry="14" fill="#00c8ff" opacity="0.6"/>
+  <ellipse cx="160" cy="50" rx="6" ry="6" fill="#fff" opacity="0.9"/>
+  <!-- Windows -->
+  <circle cx="160" cy="300" r="28" fill="#061525" stroke="#00c8ff" stroke-width="2"/>
+  <circle cx="160" cy="300" r="20" fill="#0a2e50"/>
+  <circle cx="160" cy="300" r="14" fill="#001830" stroke="#00c8ff" stroke-width="1"/>
+  <circle cx="153" cy="293" r="4" fill="rgba(0,200,255,.6)"/>
+  <!-- Panel lines -->
+  <line x1="160" y1="270" x2="160" y2="500" stroke="rgba(0,200,255,0.3)" stroke-width="1" stroke-dasharray="6 4"/>
+  <rect x="130" y="360" width="60" height="20" rx="2" fill="none" stroke="rgba(0,200,255,.25)" stroke-width="1"/>
+  <rect x="130" y="390" width="60" height="20" rx="2" fill="none" stroke="rgba(0,200,255,.25)" stroke-width="1"/>
+  <rect x="130" y="420" width="60" height="20" rx="2" fill="none" stroke="rgba(0,200,255,.25)" stroke-width="1"/>
+  <!-- Left fin -->
+  <path d="M105 440 L60 540 L105 520Z" fill="#0d2a55" stroke="#00c8ff" stroke-width="1.5"/>
+  <!-- Right fin -->
+  <path d="M215 440 L260 540 L215 520Z" fill="#0d2a55" stroke="#00c8ff" stroke-width="1.5"/>
+  <!-- Nozzle -->
+  <path d="M125 500 L100 580 L220 580 L195 500Z" fill="#061525" stroke="#00c8ff" stroke-width="1.5"/>
+  <!-- Nozzle opening -->
+  <ellipse cx="160" cy="580" rx="60" ry="10" fill="#ff6b35" opacity="0.7"/>
+  <!-- Engine glow -->
+  <ellipse cx="160" cy="580" rx="40" ry="7" fill="#ffaa00" opacity="0.8"/>
+  <ellipse cx="160" cy="580" rx="20" ry="4" fill="#fff" opacity="0.9"/>
+  <!-- Accent stripes -->
+  <rect x="105" y="340" width="110" height="8" rx="1" fill="#ff6b35" opacity="0.7"/>
+  <rect x="105" y="460" width="110" height="8" rx="1" fill="#ff6b35" opacity="0.7"/>
+</svg>
+ 
+<!-- Flame particles -->
+<div class="flame-wrap">
+  <div class="flame"></div>
+  <div class="flame"></div>
+  <div class="flame"></div>
+</div>
+ 
+<div class="page">
+  <header>
+    <div class="badge">🚀 Aerospace Engineering Tool</div>
+    <h1>PARACHUTE <span>PARAMETER</span><br>CALCULATOR</h1>
+    <p class="subtitle">Recovery System · Descent Analysis · Surface Area & Diameter</p>
+  </header>
+ 
+  <div class="card">
+    <div class="field">
+      <label>Mass of Rocket / Object</label>
+      <div class="input-wrap">
+        <input type="number" id="mass" placeholder="e.g. 500" min="0" step="any"/>
+        <span class="unit">grams</span>
+      </div>
+      <p class="hint">Total mass including payload</p>
+    </div>
+ 
+    <div class="field">
+      <label>Desired Descent Velocity</label>
+      <div class="input-wrap">
+        <input type="number" id="velocity" placeholder="e.g. 5.0" min="0" step="any"/>
+        <span class="unit">m/s</span>
+      </div>
+      <p class="hint">Safe landing typically 4–8 m/s</p>
+    </div>
+ 
+    <div class="field">
+      <label>Drag Coefficient (Cd)</label>
+      <div class="input-wrap">
+        <input type="number" id="drag" placeholder="e.g. 0.75" min="0" step="any"/>
+        <span class="unit">dimensionless</span>
+      </div>
+      <p class="hint">Circular chute ≈ 0.75 | Hemispherical ≈ 1.5</p>
+    </div>
+ 
+    <button class="btn" id="calcBtn" onclick="calculate()">
+      ⚡ CALCULATE PARAMETERS
+    </button>
+ 
+    <div class="error-msg" id="errorMsg"></div>
+ 
+    <div class="results" id="results">
+      <p class="result-label">▸ Computed Parachute Parameters</p>
+      <div class="result-grid">
+        <div class="result-box" data-label="SURFACE AREA">
+          <span class="result-value" id="resArea">—</span>
+          <div class="result-unit">m²</div>
+        </div>
+        <div class="result-box" data-label="DIAMETER">
+          <span class="result-value" id="resDiam">—</span>
+          <div class="result-unit">meters</div>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+  <footer>ρ_air = 1.225 kg/m³ · g = 9.8 m/s² · A = 2mg / (ρ·Cd·v²) · D = √(4A/π)</footer>
+</div>
+ 
+<script>
+  async function calculate() {
+    const btn = document.getElementById('calcBtn');
+    const errorEl = document.getElementById('errorMsg');
+    const resultsEl = document.getElementById('results');
+ 
+    const mass = document.getElementById('mass').value.trim();
+    const velocity = document.getElementById('velocity').value.trim();
+    const drag = document.getElementById('drag').value.trim();
+ 
+    // Hide previous state
+    errorEl.classList.remove('visible');
+    resultsEl.classList.remove('visible');
+ 
+    if (!mass || !velocity || !drag) {
+      showError('All fields are required. Please fill in every parameter.');
+      return;
+    }
+ 
+    btn.classList.add('loading');
+    btn.textContent = '⏳ COMPUTING...';
+ 
+    try {
+      const resp = await fetch('/calculate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mass, velocity, drag_coefficient: drag })
+      });
+      const data = await resp.json();
+ 
+      if (!resp.ok || data.error) {
+        showError(data.error || 'Calculation failed. Check your inputs.');
+      } else {
+        document.getElementById('resArea').textContent = data.surface_area;
+        document.getElementById('resDiam').textContent = data.diameter;
+        resultsEl.classList.add('visible');
+      }
+    } catch (e) {
+      showError('Network error. Please ensure the Flask server is running.');
+    } finally {
+      btn.classList.remove('loading');
+      btn.textContent = '⚡ CALCULATE PARAMETERS';
+    }
+  }
+ 
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = '⚠ ' + msg;
+    el.classList.add('visible');
+  }
+ 
+  // Allow Enter key to trigger calculation
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') calculate();
+  });
+</script>
+</body>
+</html>
