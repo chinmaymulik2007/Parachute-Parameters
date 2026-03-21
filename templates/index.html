@@ -415,6 +415,15 @@
       </div>
       <p class="hint">Circular chute ≈ 0.75 | Hemispherical ≈ 1.5</p>
     </div>
+
+    <div class="field">
+      <label>Length of Rocket</label>
+      <div class="input-wrap">
+        <input type="number" id="length" placeholder="e.g. 100" min="0" step="any"/>
+        <span class="unit">centimeters</span>
+      </div>
+      <p class="hint">Enter the length of the rocket in centimeters.</p>
+    </div>
  
     <button class="btn" id="calcBtn" onclick="calculate()">
       ⚡ CALCULATE PARAMETERS
@@ -425,14 +434,26 @@
     <div class="results" id="results">
       <p class="result-label">▸ Computed Parachute Parameters</p>
       <div class="result-grid">
+       
         <div class="result-box" data-label="SURFACE AREA">
           <span class="result-value" id="resArea">—</span>
           <div class="result-unit">m²</div>
         </div>
+        
         <div class="result-box" data-label="DIAMETER">
           <span class="result-value" id="resDiam">—</span>
           <div class="result-unit">meters</div>
         </div>
+
+        <div class="result-box" data-label="SHROUD LINE LENGTH">
+          <span class="result-value" id="resShroudLine">—</span>
+          <div class="result-unit">centimeters</div>
+        </div>
+        
+        <div class="result-box" data-label="SHROUD CORD LENGTH">
+          <span class="result-value" id="resShroudCord">—</span>
+          <div class="result-unit">centimeters</div>
+          
       </div>
     </div>
   </div>
@@ -449,12 +470,13 @@
     const mass = document.getElementById('mass').value.trim();
     const velocity = document.getElementById('velocity').value.trim();
     const drag = document.getElementById('drag').value.trim();
+    const length = document.getElementById('length').value.trim();
  
     // Hide previous state
     errorEl.classList.remove('visible');
     resultsEl.classList.remove('visible');
  
-    if (!mass || !velocity || !drag) {
+    if (!mass || !velocity || !drag || !length) {
       showError('All fields are required. Please fill in every parameter.');
       return;
     }
@@ -466,7 +488,7 @@
       const resp = await fetch('/calculate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mass, velocity, drag_coefficient: drag })
+        body: JSON.stringify({ mass, velocity, drag_coefficient: drag, length })
       });
       const data = await resp.json();
  
@@ -475,6 +497,8 @@
       } else {
         document.getElementById('resArea').textContent = data.surface_area;
         document.getElementById('resDiam').textContent = data.diameter;
+        document.getElementById('resShroudLine').textContent = data.shroud_line_length;
+        document.getElementById('resShroudCord').textContent = data.shroud_cord_length;
         resultsEl.classList.add('visible');
       }
     } catch (e) {
