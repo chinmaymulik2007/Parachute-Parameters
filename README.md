@@ -5,4 +5,5 @@ This Website is is about Model Rocket Parachute Parameters Calcution.
 Easy for the workers/student in model rocketry for calculation of the Parchute Parameters Calculation.
 Helps to the newbies in the Model rocketry.
 
-The S=(2*m*g)/(
+The S=(2*m*g)/(pi*Cd*v^2)
+A=(4*S)/pi
